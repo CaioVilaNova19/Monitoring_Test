@@ -5,40 +5,8 @@ This project implements a real-time transaction monitoring system designed to de
 ## **Architecture Diagram**
 
 The following diagram illustrates the key components and their interactions within the monitoring system:  
-<div style="text-align: center;">
- +-------------------+     +-------------------------+     +-------------------+
- |    Data Generator |     |      API Endpoint       |     |     Database      |
- | (generate_test_data.py) +---> (transactions_endpoint.py) +---> (transactions.db) |
- +-------------------+     |     (Flask App)         |     +-------------------+
-           |               |                         |              ^
-           |   POST        |   Anomaly Detection     |              |
-           |   Requests    |   (check_anomaly)       |              | Historical Data
-           V               |                         |              |
- +-------------------+     |   Severity Calculation  |              |
- |    Transaction    |     |   (calculate_severity)  |              |
- |     Received      |     +-----------+-------------+              |
- +-------------------+                 |                            |
-           |                           | Trigger Alerts             |
-           |                           V                            |
-           |               +-----------------------+                |
-           |               |    Alert Services     |                |
-           |               | (email_alert.py,      |                |
-           |               |  telegram_alert.py)   |                |
-           +-----------+-----------+                |
-           |                           |                            |
-           |                           V                            |
-           |                   Active Notifications               |
-           |                                                        |
-           |                                                        |
-           |                   Provides Data for Dashboard          |
-           +--------------------------------------------------------+
-                                        |
-                                        V
-                                 +-----------------------+
-                                 |       Dashboard       |
-                                 |   (dashboard.html)    |
-                                 +-----------------------+
-                                         (Real-time Visualization)
+<div align="center">
+  <img src="https://raw.githubusercontent.com/CaioVilaNova19/Monitoring_Test/main/assets/architecture_diagram.jpg" alt="System Architecture Diagram">
 </div>
 
 ## **Features**
@@ -162,4 +130,9 @@ This notebook will walk you through:
 * **Accessing the Real-time Monitoring Dashboard**.  
 * **Configuring and Checking Alerts** for Telegram and Email.
 
-Follow the instructions within the notebook to get your monitoring system up and running.
+Clone this repository and follow the instructions within the notebook to get your monitoring system up and running.
+
+If you don't feel like adjusting the Telegram script, here is a demonstration of how the message is delivered:
+<div align="center">
+  <img src="https://raw.githubusercontent.com/CaioVilaNova19/Monitoring_Test/main/assets/telegramproof.png" alt="Telegram Alert Proof">
+</div>
