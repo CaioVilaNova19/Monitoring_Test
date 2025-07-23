@@ -6,20 +6,15 @@ from datetime import datetime, timedelta
 import random
 import sqlite3 # Importação mantida, mas sqlite3 não será usado neste script
 
-# Configurações
+
 ENDPOINT_URL = os.environ.get('ENDPOINT_URL', 'http://127.0.0.1:5000/receive_transaction')
 # CSV_PATH não será usado para escrita, apenas para referência (se aplicável)
 CSV_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'transactions.csv'))
 DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'transactions.db')) # Não será usado para limpar o DB aqui
 STREAM_SPEED = float(os.environ.get('STREAM_SPEED', 0.5))
-
-# --- Lógica para gerar dados que garantam uma anomalia ---
+-
 data = []
 
-# Escolha uma data e hora para injetar a anomalia que você sabe que já tem histórico NORMAL no seu transactions.csv
-# Por exemplo, se seu CSV tem histórico para 2025-07-22 na hora 21, use essa hora.
-# Vou usar '2025-07-22T21:00:00' como exemplo, ajuste conforme seu CSV!
-# IMPORTANTE: A hora aqui (21) deve ter dados 'denied' *normais* no seu histórico CSV.
 target_anomaly_hour = datetime(2025, 7, 22, 21, 0, 0) # Exemplo: 22 de Julho de 2025, 21:00:00
 
 # 1. Gerar dados "normais" antes e depois da hora da anomalia, simulando tráfego contínuo.
@@ -57,7 +52,7 @@ data.append({
 # Opcional: Para garantir que a anomalia seja processada por último, você pode reordenar a lista:
 # data.sort(key=lambda x: datetime.fromisoformat(x['timestamp']))
 
-# --- Fim da lógica de geração de dados ---
+# --- End of data generation logic ---
 
 # Criar o DataFrame
 df = pd.DataFrame(data)
