@@ -14,7 +14,7 @@ This repository contains solutions for two distinct technical challenges:
 
 ---
 
-## 📊 `desafio-analise` (Sales Anomaly Analysis)
+## 📊 `desafio-analise` (Transactions Anomaly Analysis)
 
 - An exploratory data analysis project focused on identifying anomalous behaviors in hypothetical hourly sales data from POS checkouts.
 
