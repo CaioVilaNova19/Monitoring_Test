@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5; /* Light gray background */
+            color: #333;
+        }
+        .container {
+            max-width: 1400px; /* Increased max-width */
+            margin: auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        h1, h2 {
+            color: #2c3e50; /* Darker blue/gray for headers */
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Overview Section */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .kpi-card {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        .kpi-card .value {
+            font-size: 2.2em;
+            font-weight: 700;
+            color: #3498db; /* Blue for primary values */
+            margin-bottom: 5px;
+        }
+        .kpi-card .label {
+            font-size: 0.9em;
+            color: #777;
+        }
+        .kpi-card.anomaly-kpi .value {
+            color: #e74c3c; /* Red for anomaly KPIs */
+        }
+
+        /* Charts Section */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); /* Two columns for charts */
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .chart-container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            height: 450px; /* Consistent height for charts */
+            display: flex;
+            flex-direction: column;
+        }
+        .chart-container h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: left;
+            font-size: 1.4em;
+            color: #555;
+        }
+        .chart-canvas {
+            flex-grow: 1; /* Make canvas fill available space */
+            min-height: 0; /* Allow flex item to shrink */
+        }
+
+        /* Recent Transactions List */
+        .recent-transactions {
+            margin-top: 30px;
+        }
+        .recent-transactions h2 {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .transaction-item {
+            background-color: #fdfdfd;
+            padding: 12px 18px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95em;
+            border-left: 6px solid transparent; /* For alert border */
+            transition: all 0.2s ease-in-out;
+        }
+        .transaction-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Background colors for status items */
+        .transaction-item.status-denied { background-color: #fff9e6; } /* Light yellow */
+        .transaction-item.status-failed { background-color: #ffebe6; } /* Light red */
+        .transaction-item.status-reversed { background-color: #e6fff2; } /* Light green */
+        .transaction-item.status-approved { background-color: #e6f7ff; } /* Light blue */
+
+        /* Styles for danger levels */
+        .danger-low { color: #28a745; font-weight: bold; } /* Green */
+        .danger-medium { color: #ffc107; font-weight: bold; } /* Yellow */
+        .danger-high { color: #dc3545; font-weight: bold; } /* Red */
+        .danger-unknown { color: #6c757d; font-weight: bold; } /* Gray */
+
+        /* Border and animation for high alerts */
+        .transaction-item.alert-high {
+            border-left: 6px solid #dc3545; /* Strong red */
+            animation: pulse 1.5s infinite alternate ease-in-out; /* Slower pulse */
+            background-color: #ffe0e6; /* Lighter red tint */
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.5); }
+            100% { box-shadow: 0 0 0 12px rgba(220, 53, 69, 0); }
+        }
+
+        .transaction-item .count {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+        .transaction-item span {
+            flex: 1;
+            text-align: center;
+        }
+        .transaction-item span:first-child {
+            text-align: left;
+            flex: 1.5;
+        }
+        .transaction-item span:last-child {
+            text-align: right;
+        }
+        .transaction-item .status-label {
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Real-time Transaction Monitoring</h1>
+            <p>Overview and details of transaction activities and anomaly detection.</p>
+        </header>
+
+        <h2>Overview (Last 24h)</h2>
+        <div class="overview-grid">
+            <div class="kpi-card">
+                <div id="totalTransactions" class="value">0</div>
+                <div class="label">Total Transactions</div>
+            </div>
+            <div class="kpi-card anomaly-kpi">
+                <div id="totalAnomalies" class="value">0</div>
+                <div class="label">High-Risk Anomalies</div>
+            </div>
+            <div class="kpi-card">
+                <div id="deniedCount" class="value">0</div>
+                <div class="label">Total Denied</div>
+            </div>
+            <div class="kpi-card">
+                <div id="failedCount" class="value">0</div>
+                <div class="label">Total Failed</div>
+            </div>
+            <div class="kpi-card">
+                <div id="reversedCount" class="value">0</div>
+                <div class="label">Total Reversed</div>
+            </div>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart-container">
+                <h2>Denied Transactions per Hour</h2>
+                <canvas id="deniedChart" class="chart-canvas"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Approved Transactions per Hour</h2>
+                <canvas id="approvedChart" class="chart-canvas"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Transaction Distribution (Total 24h)</h2>
+                <canvas id="statusDistributionChart" class="chart-canvas"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Failed Transactions per Hour</h2>
+                <canvas id="failedChart" class="chart-canvas"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Reversed Transactions per Hour</h2>
+                <canvas id="reversedChart" class="chart-canvas"></canvas>
+            </div>
+             </div>
+
+        <div class="recent-transactions">
+            <h2>Recent Transactions (with Danger Level)</h2>
+            <div id="transactionList">
+                <p>Loading transactions...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Register the datalabels plugin globally
+        Chart.register(ChartDataLabels);
+
+        const ENDPOINT_URL = 'http://127.0.0.1:5000/dashboard_data'; 
+
+        let charts = {}; // Object to store chart instances
+
+        async function fetchDashboardData() {
+            try {
+                const response = await fetch(ENDPOINT_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log("Data received:", data); // Translated console log
+                
+                updateKPIs(data.metrics_by_hour_status, data.recent_transactions);
+                updateLineCharts(data.metrics_by_hour_status);
+                updateStatusDistributionChart(data.metrics_by_hour_status); // New chart
+                updateRecentTransactions(data.recent_transactions);
+
+            } catch (error) {
+                console.error("Error fetching dashboard data:", error); // Translated console error
+                document.getElementById('transactionList').innerHTML = '<p style="color: red;">Error loading dashboard data.</p>'; // Translated error message
+            }
+        }
+
+        function updateKPIs(metrics, recentTransactions) {
+            let totalTransactions = recentTransactions.length;
+            let totalHighAnomalies = recentTransactions.filter(t => t.alert && t.severity === 'high').length;
+
+            let deniedCount = 0;
+            let failedCount = 0;
+            let reversedCount = 0;
+
+            // For status totals, we aggregate counts from all recent transactions
+            // This provides a more immediate view. For 24h, we would sum the `mean_count` from `metrics`.
+            recentTransactions.forEach(t => {
+                if (t.status === 'denied') deniedCount += t.count;
+                if (t.status === 'failed') failedCount += t.count;
+                if (t.status === 'reversed') reversedCount += t.count;
+            });
+
+            document.getElementById('totalTransactions').textContent = totalTransactions;
+            document.getElementById('totalAnomalies').textContent = totalHighAnomalies;
+            document.getElementById('deniedCount').textContent = deniedCount;
+            document.getElementById('failedCount').textContent = failedCount;
+            document.getElementById('reversedCount').textContent = reversedCount;
+        }
+
+        // --- CHART UTILITIES ---
+        // Color mapping for charts and danger_level text
+        const statusColors = {
+            'denied': { mean: 'rgb(255, 99, 132)', threshold: 'rgb(255, 159, 64)', bar: 'rgba(255, 99, 132, 0.7)' }, 
+            'approved': { mean: 'rgb(75, 192, 192)', threshold: 'rgb(54, 162, 235)', bar: 'rgba(75, 192, 192, 0.7)' }, 
+            'failed': { mean: 'rgb(201, 203, 207)', threshold: 'rgb(153, 102, 255)', bar: 'rgba(201, 203, 207, 0.7)' }, 
+            'reversed': { mean: 'rgb(255, 205, 86)', threshold: 'rgb(255, 170, 0)', bar: 'rgba(255, 205, 86, 0.7)' } 
+        };
+        const dangerLevelClass = {
+            'low': 'danger-low',
+            'medium': 'danger-medium',
+            'high': 'danger-high',
+            'unknown': 'danger-unknown'
+        };
+
+        // Function to create/update line charts
+        function updateLineCharts(metrics) {
+            const allHours = [...new Set(metrics.map(m => m.hour_window))].sort();
+            const statuses = ['denied', 'approved', 'failed', 'reversed']; 
+
+            statuses.forEach(status => {
+                const filteredMetrics = allHours.map(hour => {
+                    const metric = metrics.find(m => m.hour_window === hour && m.status === status);
+                    // Returns a default object if no metric for the hour/status
+                    return metric ? metric : { hour_window: hour, mean_count: 0, std_count: 0, max_normal_value: 0, num_points: 0 };
+                });
+
+                const labels = filteredMetrics.map(m => new Date(m.hour_window).toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'})); // Changed to 'en-US'
+                const meanData = filteredMetrics.map(m => m.mean_count);
+                const thresholdData = filteredMetrics.map(m => m.max_normal_value);
+
+                const ctx = document.getElementById(`${status}Chart`);
+                if (!ctx) return; 
+
+                if (charts[`${status}Line`]) { // Use a unique name for the line chart
+                    charts[`${status}Line`].data.labels = labels;
+                    charts[`${status}Line`].data.datasets[0].data = meanData;
+                    charts[`${status}Line`].data.datasets[1].data = thresholdData;
+                    charts[`${status}Line`].update();
+                } else {
+                    charts[`${status}Line`] = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: `Average ${status.charAt(0).toUpperCase() + status.slice(1)} Transactions`, // Translated label
+                                    data: meanData,
+                                    borderColor: statusColors[status].mean,
+                                    tension: 0.3, // Slightly smoother lines
+                                    fill: false,
+                                    pointRadius: 4,
+                                    pointHoverRadius: 6
+                                },
+                                {
+                                    label: `Upper Limit (${status.charAt(0).toUpperCase() + status.slice(1)})`, // Translated label
+                                    data: thresholdData,
+                                    borderColor: statusColors[status].threshold,
+                                    borderDash: [5, 5],
+                                    tension: 0.3,
+                                    fill: false,
+                                    pointRadius: 2,
+                                    pointHoverRadius: 4
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Average Count' // Translated title
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Hour' // Translated title
+                                    }
+                                }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                },
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                },
+                                datalabels: { // Disable datalabels for line charts by default
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        // Function to create/update the horizontal bar chart (Total Transactions by Status)
+        function updateStatusDistributionChart(metrics) {
+            const statusTotals = {}; // Object to sum counts by status
+
+            // Aggregates mean_count from all hours for each status in the last 24h
+            metrics.forEach(m => {
+                if (statusTotals[m.status]) {
+                    statusTotals[m.status] += m.mean_count;
+                } else {
+                    statusTotals[m.status] = m.mean_count;
+                }
+            });
+
+            // Extract labels and data for the chart
+            const labels = Object.keys(statusTotals).map(s => s.charAt(0).toUpperCase() + s.slice(1));
+            const data = Object.values(statusTotals);
+            const backgroundColors = Object.keys(statusTotals).map(s => statusColors[s] ? statusColors[s].bar : 'rgba(100, 100, 100, 0.7)');
+            const borderColors = Object.keys(statusTotals).map(s => statusColors[s] ? statusColors[s].mean : 'rgb(100, 100, 100)');
+
+            const ctx = document.getElementById('statusDistributionChart');
+            if (!ctx) return;
+
+            if (charts.statusDistribution) {
+                charts.statusDistribution.data.labels = labels;
+                charts.statusDistribution.data.datasets[0].data = data;
+                charts.statusDistribution.data.datasets[0].backgroundColor = backgroundColors;
+                charts.statusDistribution.data.datasets[0].borderColor = borderColors;
+                charts.statusDistribution.update();
+            } else {
+                charts.statusDistribution = new Chart(ctx, {
+                    type: 'bar', // Bar chart type
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Total Transactions (24h Average)', // Translated label
+                            data: data,
+                            backgroundColor: backgroundColors,
+                            borderColor: borderColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y', // Makes the chart horizontal
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Total Average Count' // Translated title
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Transaction Status' // Translated title
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false // No need for a legend for a single dataset
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            datalabels: { // Enable datalabels for this bar chart
+                                anchor: 'end',
+                                align: 'end',
+                                formatter: Math.round, // Rounds numbers
+                                color: '#333',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+
+        function updateRecentTransactions(transactions) {
+            const listElement = document.getElementById('transactionList');
+            listElement.innerHTML = ''; // Clear existing list
+
+            if (transactions.length === 0) {
+                listElement.innerHTML = '<p>No recent transactions to display.</p>'; // Translated message
+                return;
+            }
+
+            transactions.forEach(t => {
+                const item = document.createElement('div');
+                // Add classes for status and for alert (if high)
+                item.className = `transaction-item status-${t.status} ${t.alert && t.severity === 'high' ? 'alert-high' : ''}`;
+                
+                const formattedTimestamp = new Date(t.timestamp).toLocaleString('en-US'); // Changed to 'en-US'
+                const dangerTextClass = dangerLevelClass[t.severity] || 'danger-unknown'; 
+
+                item.innerHTML = `
+                    <span>${formattedTimestamp}</span>
+                    <span class="status-label">Status: ${t.status.charAt(0).toUpperCase() + t.status.slice(1)}</span>
+                    <span>Count: <span class="count">${t.count}</span></span> <span>Severity: <span class="${dangerTextClass}">${t.severity.toUpperCase()}</span></span> `;
+                listElement.appendChild(item);
+            });
+        }
+
+        // Call fetch data function every 5 seconds
+        setInterval(fetchDashboardData, 5000); 
+
+        // Call on initial page load
+        fetchDashboardData();
+    </script>
+</body>
+</html>
