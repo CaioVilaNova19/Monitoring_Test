@@ -6,40 +6,39 @@ This project implements a real-time transaction monitoring system designed to de
 
 The following diagram illustrates the key components and their interactions within the monitoring system:  
 <div style="text-align: center;">
-     \+-------------------+     \+-------------------------+     \+-------------------+  
-     |    Data Generator |     |      API Endpoint       |     |     Database      |  
-     | (generate\_test\_data.py) \+---\> (transactions\_endpoint.py) \+---\> (transactions.db) |  
-     \+-------------------+     |     (Flask App)         |     \+-------------------+  
-               |               |                         |              ^  
-               |   POST        |   Anomaly Detection     |              |  
-               |   Requests    |   (check\_anomaly)       |              | Historical Data  
-               V               |                         |              |  
-     \+-------------------+     |   Severity Calculation  |              |  
-     |    Transaction    |     |   (calculate\_severity)  |              |  
-     |     Received      |     \+-----------+-------------+              |  
-     \+-------------------+                 |                            |  
-               |                           | Trigger Alerts             |  
-               |                           V                            |  
-               |               \+-----------------------+                |  
-               |               |    Alert Services     |                |  
-               |               | (email\_alert.py,      |                |  
-               |               |  telegram\_alert.py)   |                |  
-               |               \+-----------+-----------+                |  
-               |                           |                            |  
-               |                           V                            |  
-               |                   Active Notifications               |  
-               |                                                        |  
-               |                                                        |  
-               |                   Provides Data for Dashboard          |  
-               \+--------------------------------------------------------+  
-                                            |  
-                                            V  
-                                     \+-----------------------+  
-                                     |       Dashboard       |  
-                                     |   (dashboard.html)    |  
-                                     \+-----------------------+  
-                                        (Real-time Visualization)
-                                        
+ +-------------------+     +-------------------------+     +-------------------+
+ |    Data Generator |     |      API Endpoint       |     |     Database      |
+ | (generate_test_data.py) +---> (transactions_endpoint.py) +---> (transactions.db) |
+ +-------------------+     |     (Flask App)         |     +-------------------+
+           |               |                         |              ^
+           |   POST        |   Anomaly Detection     |              |
+           |   Requests    |   (check_anomaly)       |              | Historical Data
+           V               |                         |              |
+ +-------------------+     |   Severity Calculation  |              |
+ |    Transaction    |     |   (calculate_severity)  |              |
+ |     Received      |     +-----------+-------------+              |
+ +-------------------+                 |                            |
+           |                           | Trigger Alerts             |
+           |                           V                            |
+           |               +-----------------------+                |
+           |               |    Alert Services     |                |
+           |               | (email_alert.py,      |                |
+           |               |  telegram_alert.py)   |                |
+           +-----------+-----------+                |
+           |                           |                            |
+           |                           V                            |
+           |                   Active Notifications               |
+           |                                                        |
+           |                                                        |
+           |                   Provides Data for Dashboard          |
+           +--------------------------------------------------------+
+                                        |
+                                        V
+                                 +-----------------------+
+                                 |       Dashboard       |
+                                 |   (dashboard.html)    |
+                                 +-----------------------+
+                                         (Real-time Visualization)
 </div>
 
 ## **Features**
