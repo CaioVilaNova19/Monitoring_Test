@@ -6,7 +6,7 @@ This project implements a real-time transaction monitoring system designed to de
 
 The following diagram illustrates the key components and their interactions within the monitoring system:  
 <div align="center">
-  <img src="https://raw.githubusercontent.com/CaioVilaNova19/Monitoring_Test/main/assets/architecture_diagram.jpg" alt="System Architecture Diagram">
+  <img src="https://raw.githubusercontent.com/CaioVilaNova19/Monitoring_Test/main/assets/architerure_diagram.jpg" alt="System Architecture Diagram">
 </div>
 
 ## **Features**
