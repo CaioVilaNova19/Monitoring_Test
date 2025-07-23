@@ -4,11 +4,15 @@ import os
 
 def send_telegram_alert(status, detected_at, current_count):
     """
-    Envia um alerta para um chat do Telegram.
+    Send the alert
     """
+#Important Security Notice:
+#The bot token and Chat ID were initially hardcoded for quick testing and demonstration purposes. However, for security reasons and best practices, after the test the token was immediately revoked.
+#Please be aware about the risks of exposing credentials in public repositories.
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN") or "YOUR_BOT_TOKEN" # Avoid the second option
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID") or "CHAT_ID"  # WARNING: The Chat ID should also be treated as a credential and must not be hardcoded.
+# It should be set as an environment variable named TELEGRAM_CHAT_ID.
 
-    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN") or "7773981984:AAFGY8iKoPtqMsp-Wn8BOug1mFdcKw1ky0I"
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID") or "1315871209"  # seu ID, testado via navegador
 
     message_text = (
         f"🚨 <b>ANOMALY ALERT - Transaction {status.upper()}</b>\n\n"
