@@ -56,3 +56,6 @@ To view the analysis:
 2. Navigate to the notebooks directory of the project.  
 3. Open the Exploratory\_Analysis.ipynb file in your browser via Jupyter.  
 4. Execute the cells sequentially to replicate the analysis and understand the anomaly identification process.
+
+**Note on exploratory_with_wrong_data.ipynb:**
+This notebook represents an initial, unfinished attempt at exploratory data analysis. It chronicles early explorations and tests of initial hypotheses, including an iteration where the dataset used might not have fully aligned with the final challenge specifications. It is included for reference to illustrate the iterative process of data analysis and problem-solving, showcasing the development of insights
